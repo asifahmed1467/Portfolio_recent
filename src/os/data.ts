@@ -87,4 +87,4 @@ export const data = {
   specs: { device: 'ASIF-RIG', cpu: 'Python 3.12 @ 5.0 GHz (16 cores of curiosity)', gpu: 'PyTorch · Hugging Face · LoRA', ram: '64 GB of Bangla NLP + Voice AI', storage: '3.86 CGPA SSD · 5x Dean\'s Award cache', os: 'Portfolio OS 11 (build 2026)' }
 };
 
-export type AppId = 'explorer' | 'browser' | 'terminal' | 'notepad' | 'settings' | 'taskmgr' | 'photos' | 'mail' | 'calc' | 'snake' | 'invaders' | 'ailab' | 'resume' | 'about';
+export type AppId = 'explorer' | 'browser' | 'terminal' | 'notepad' | 'settings' | 'taskmgr' | 'photos' | 'mail' | 'calc' | 'snake' | 'invaders' | 'ailab' | 'resume' | 'about' | 'welcome' | 'projects' | 'skills' | 'journey';
