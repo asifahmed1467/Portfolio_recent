@@ -124,7 +124,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
     const def = APPS[id]; closeFlyouts(); if (!def) return;
     if (def.single) { const ex = wm.wins.find(w => w.app === id); if (ex) { wm.focus(ex); (ex as any).hooks.onArg?.(arg); return; } }
     if (!apps.has(id)) apps.set(id, def.load()); sfx.click();
-    apps.get(id)!.then(mod => { const w = wm.open({ app: id, title: def.title, icon: tile(def.emoji, def.c1, def.c2, 18), w: def.w, h: def.h, x: arg?.x, y: arg?.y, build: (body, win) => mod.build(body, win, os, arg) }); void w; }).catch(err => notify('App failed to start', String(err), '⚠️'));
+    apps.get(id)!.then(mod => { const w = wm.open({ app: id, title: def.title, icon: tile(def.emoji, def.c1, def.c2, 18), w: ['invaders', 'snake', 'calc'].includes(id) ? def.w : Math.round(def.w * 1.15), h: ['invaders', 'snake', 'calc'].includes(id) ? def.h : Math.round(def.h * 1.14), x: arg?.x, y: arg?.y, build: (body, win) => mod.build(body, win, os, arg) }); void w; }).catch(err => notify('App failed to start', String(err), '⚠️'));
   }
   os.openApp = openApp; os.closeApp = (id: AppId) => wm.wins.filter(w => w.app === id).forEach(w => wm.close(w));
 

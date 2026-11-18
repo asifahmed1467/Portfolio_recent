@@ -33,7 +33,7 @@ export class WM {
   open(o: OpenOpts): Win {
     const { w: W, h: H } = this.size; const n = this.wins.length;
     const ww = Math.min(o.w || 760, W - 20), hh = Math.min(o.h || 480, H - 20);
-    const x = o.x ?? clamp((W > 1000 ? 236 : 40) + (n % 6) * 30 + Math.random() * 16, 0, Math.max(0, W - ww)), y = o.y ?? clamp(24 + (n % 6) * 28, 0, Math.max(0, H - hh));
+    const x = o.x ?? clamp((W > 1000 ? 262 : 40) + (n % 6) * 30 + Math.random() * 16, 0, Math.max(0, W - ww)), y = o.y ?? clamp(24 + (n % 6) * 28, 0, Math.max(0, H - hh));
     const titleEl = h('span', { class: 'tt' }, o.title); const body = h('div', { class: 'wb' });
     const btn = (cls: string, label: string, glyph: string, fn: (e: Event) => void) => h('button', { class: 'cb ' + cls, 'aria-label': label, title: label, onclick: (e: Event) => { e.stopPropagation(); fn(e); } }, glyph);
     let win!: Win;
@@ -41,7 +41,7 @@ export class WM {
     maxBtn.addEventListener('pointerenter', () => { if (!this.tablet) this.snapTimer = window.setTimeout(() => this.showSnap(win, maxBtn), 450); });
     maxBtn.addEventListener('pointerleave', () => clearTimeout(this.snapTimer));
     const tb = h('div', { class: 'tb' }, h('div', { class: 'ti' }, o.icon.cloneNode(true), titleEl), h('div', { class: 'ctl' }, btn('mn', 'Minimize', '—', () => this.minimize(win)), maxBtn, btn('cl', 'Close', '✕', () => this.close(win))));
-    const el = h('div', { class: 'win opening', tabindex: '-1', role: 'dialog', 'aria-label': o.title }, tb, body);
+    const el = h('div', { dataset: { app: o.app }, class: 'win opening', tabindex: '-1', role: 'dialog', 'aria-label': o.title }, tb, body);
     win = { id: this.nid++, app: o.app, title: o.title, icon: o.icon, el, body, titleEl, x, y, w: ww, h: hh, max: false, min: false, hooks: {}, minW: o.minW || 340, minH: o.minH || 220 };
     this.desk.append(el); this.apply(win); this.wins.push(win);
     ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(d => { const r = h('div', { class: 'rs ' + d }); r.addEventListener('pointerdown', e => this.startResize(e, win, d)); el.append(r); });

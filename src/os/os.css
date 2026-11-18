@@ -254,3 +254,34 @@
 .ss-pic>img,.lb-pic>img,.lb-fig.kbx .lb-pic>img,.tilt-pic>img{object-fit:contain!important}.lb-fig.kbx .lb-zoom,.ss .ss-pic{--z:1.05}.wall.fx-duotone:after,.root.grain:after{display:none}
 
 .ph-t:hover .pic>img,.ph-t:focus-visible .pic>img{transform:none!important}.pic>img{image-rendering:auto}
+
+/* ===== readability + motion pass ===== */
+.os{--font:"Plus Jakarta Sans","Segoe UI Variable Text",Inter,system-ui,sans-serif;--head:"Space Grotesk","Plus Jakarta Sans",Inter,sans-serif;font-size:16px;letter-spacing:.005em}
+.win:not([data-app=invaders]):not([data-app=snake]):not([data-app=calc]):not([data-app=terminal]) .wb{zoom:1.22}
+.win[data-app=terminal] .wb{zoom:1.15}.win .wb{line-height:1.55}
+.win .wb :is(h1,h2,h3,h4){font-family:var(--head);letter-spacing:-.01em}
+.win .tb .tt,.win .tb .ti{font-size:14.5px;font-weight:600}
+.win .wb :is(h1,h2):not(.rv-line){background:linear-gradient(90deg,var(--fg),var(--accent),#c084fc,var(--fg));background-size:240% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 7s linear infinite}
+@keyframes shine{to{background-position:-240% 0}}
+/* every window's content rises in, one block after another */
+.win .wb>div>*,.win .wb>div>div>*{animation:wbUp .7s cubic-bezier(.16,1,.3,1) both}
+.win .wb>div>*:nth-child(1){animation-delay:.12s}.win .wb>div>*:nth-child(2){animation-delay:.2s}.win .wb>div>*:nth-child(3){animation-delay:.28s}.win .wb>div>*:nth-child(4){animation-delay:.36s}.win .wb>div>*:nth-child(5){animation-delay:.44s}.win .wb>div>*:nth-child(n+6){animation-delay:.52s}
+@keyframes wbUp{from{opacity:0;transform:translate3d(0,26px,0)}to{opacity:1;transform:none}}
+/* cards: lift + glow */
+.win .wb :is([class*="card"],[class*="-c"],.xp-proj,.br-card,.sk,.chip,.pj){transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s}
+.win .wb :is([class*="card"],.xp-proj,.br-card):hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(0,0,0,.35),0 0 0 1px var(--accent);}
+.win .wb button:not(.cb):hover{filter:brightness(1.12)}
+/* living wallpaper: slow drifting colour glows */
+.wall:before,.wall:after{content:"";position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(70px);opacity:.38;pointer-events:none;animation:drift 26s ease-in-out infinite alternate}
+.wall:before{left:-18%;top:-24%;background:radial-gradient(circle,var(--accent),transparent 65%)}
+.wall:after{right:-20%;bottom:-30%;background:radial-gradient(circle,#c084fc,transparent 65%);animation-duration:34s;animation-direction:alternate-reverse}
+@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(9vmax,6vmax,0) scale(1.2)}}
+/* windows: accent glow edge on the active one + animated title bar line */
+.win.act,.win.focus,.win:focus-within{box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--accent) 60%,transparent),0 0 38px color-mix(in srgb,var(--accent) 28%,transparent)}
+.win .tb{position:relative}.win .tb:after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),#c084fc,transparent);background-size:200% 100%;animation:shine 5s linear infinite;opacity:.8}
+/* bigger sidebar + start menu text */
+.os .sd{width:230px}.os .sd-i{font-size:16px;padding:7px 12px}.sd-me b{font-size:15px}.sd-me small{font-size:12.5px}.sd-np b{font-size:14px}.sd-np small{font-size:12px}
+.os .sd-i .tile{width:32px!important;height:32px!important;font-size:18px!important}
+.win:not([data-app=invaders]) .wb small,.win .wb .sub{font-size:13.5px}
+.os.reduced .win .wb>div>*,.os.reduced .wall:before,.os.reduced .wall:after,.os.reduced .win .tb:after,.os.reduced .win .wb :is(h1,h2){animation:none}
+@media (max-width:1000px){.os .sd{width:62px}}
