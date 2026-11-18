@@ -140,7 +140,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
   function renderIcons() {
     icons.innerHTML = ''; sideBtns.clear();
     const list = h('div', { class: 'sd-list' }, MENU.map((m, i) => { const b = h('button', { class: 'sd-i', style: { '--i': String(i) }, 'aria-label': m.label, onclick: () => { sfx.click(); const ex = wm.wins.find(w => w.app === m.id); if (ex && !ex.min && wm.active === ex) return wm.focus(ex); openApp(m.id); } }, tile(m.emoji, m.c1, m.c2, 28), h('span', {}, m.label), h('i', { class: 'sd-dot' })); sideBtns.set(m.id, b); return b; }));
-    const np = h('button', { class: 'sd-np', style: { '--i': String(MENU.length) }, 'aria-label': 'Open Spotify: SEM DEMORA', onclick: () => openApp('spotify') }, h('span', { html: SPOTIFY_LOGO_S }), h('div', {}, h('b', {}, 'SEM DEMORA'), h('small', {}, 'Spotify · tap to play')), h('div', { class: 'sd-eq' }, h('i'), h('i'), h('i'), h('i')));
+    const np = h('button', { class: 'sd-np', style: { '--i': String(MENU.length) }, 'aria-label': 'Open Spotify: SEM DEMORA', onclick: () => openApp('spotify') }, h('span', { html: SPOTIFY_LOGO_S }), h('div', {}, h('b', {}, 'SEM DEMORA'), h('small', {}, 'Full song · tap to open')), h('div', { class: 'sd-eq' }, h('i'), h('i'), h('i'), h('i')));
     icons.append(h('aside', { class: 'sd', 'aria-label': 'Portfolio menu' }, h('div', { class: 'sd-me', style: { '--i': '0' } }, Avatar(38), h('div', {}, h('b', {}, data.name), h('small', {}, data.role))), list, np)); syncSide();
   }
   const SPOTIFY_LOGO_S = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1ed760"/><path d="M5.6 9.2c4.2-1.2 9-.9 12.8 1.3M6.3 12.5c3.5-1 7.5-.7 10.6 1.1M7 15.6c2.8-.8 5.8-.5 8.3.9" stroke="#000" stroke-width="1.7" stroke-linecap="round" fill="none"/></svg>';
@@ -283,7 +283,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
   }
   let welcomed = false;
   function welcome() {
-    if (welcomed) return; welcomed = true; setTimeout(() => { if (store.get('welcomeOff', false)) notify('Welcome! 👋', 'Open Start Here on the desktop to look around.', '👋'); else openApp('welcome'); setTimeout(() => { openApp('spotify', { x: Math.max(240, desk.offsetWidth - 470), y: Math.max(10, desk.offsetHeight - 490) }); notify('Spotify', 'Press ▶ to play SEM DEMORA. Log in inside the player for the full song. 🎧', '🎧'); }, 2600); }, 900);
+    if (welcomed) return; welcomed = true; setTimeout(() => { if (store.get('welcomeOff', false)) notify('Welcome! 👋', 'Open Start Here on the desktop to look around.', '👋'); else openApp('welcome'); setTimeout(() => { openApp('spotify', { x: Math.max(240, desk.offsetWidth - 470), y: Math.max(10, desk.offsetHeight - 490) }); notify('Spotify', 'SEM DEMORA is playing, full song. Use the player to pause or change the volume. 🎧', '🎧'); }, 2600); }, 900);
     setTimeout(() => notify('Windows Defender', 'No threats found. Your portfolio is looking secure. 🛡️', '🛡️'), 24000); setTimeout(() => notify('Battery saver', 'Battery saver turns on at 20%. (This is a demo; you are fine.)', '🔋'), 52000);
   }
   function lock() { closeFlyouts(); lockScreen(); }
