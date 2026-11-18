@@ -7,7 +7,7 @@ import { Avatar, photoEl, srcset, best } from './img';
 import { LockScreenSlideshow } from './ui/slideshow';
 import { BlobHero, PhotoGallery } from './ui/blobhero';
 
-export interface Settings { theme: 'dark' | 'light'; accent: string; wall: number; brightness: number; volume: number; muted: boolean; wifi: boolean; bluetooth: boolean; saver: boolean; reduced: boolean; skipIntro: boolean; slideshow: boolean; wallFx: 'duotone' | 'blur' | 'none'; parallax: boolean; grain: boolean; }
+export interface Settings { theme: 'dark' | 'light'; accent: string; wall: number; brightness: number; volume: number; muted: boolean; wifi: boolean; bluetooth: boolean; saver: boolean; reduced: boolean; skipIntro: boolean; singleClick: boolean; slideshow: boolean; wallFx: 'duotone' | 'blur' | 'none'; parallax: boolean; grain: boolean; }
 export interface OS { openApp(id: AppId, arg?: any): void; notify(title: string, msg: string, emoji?: string): void; S: Settings; apply(): void; wm: WM; lock(): void; restart(): void; classic(): void; bsod(): void; tablet: boolean; root: HTMLElement; closeApp(id: AppId): void; }
 
 export const WALLS = [
@@ -20,6 +20,10 @@ export const ACCENTS = ['#0067C0', '#7c3aed', '#db2777', '#e11d48', '#ea580c', '
 
 interface AppDef { title: string; emoji: string; c1: string; c2: string; w: number; h: number; single?: boolean; pin?: boolean; load: () => Promise<any>; }
 export const APPS: Record<AppId, AppDef> = {
+  welcome: { title: 'Start Here', emoji: '🏠', c1: '#38bdf8', c2: '#2563eb', w: 780, h: 590, single: true, pin: true, load: () => import('./apps/welcome') },
+  projects: { title: 'Projects', emoji: '💼', c1: '#60a5fa', c2: '#1d4ed8', w: 900, h: 560, single: true, pin: true, load: () => import('./apps/projects') },
+  skills: { title: 'Skills', emoji: '🛠️', c1: '#34d399', c2: '#047857', w: 820, h: 540, single: true, pin: true, load: () => import('./apps/skills') },
+  journey: { title: 'Journey', emoji: '🎓', c1: '#a78bfa', c2: '#6d28d9', w: 760, h: 560, single: true, pin: true, load: () => import('./apps/journey') },
   explorer: { title: 'File Explorer', emoji: '📁', c1: '#fbbf24', c2: '#d97706', w: 860, h: 500, pin: true, load: () => import('./apps/explorer') },
   browser: { title: 'Edge Browser', emoji: '🌐', c1: '#38bdf8', c2: '#0f766e', w: 900, h: 520, single: true, pin: true, load: () => import('./apps/browser') },
   terminal: { title: 'Terminal', emoji: '⌨️', c1: '#374151', c2: '#111827', w: 860, h: 480, pin: true, load: () => import('./apps/terminal') },
@@ -35,7 +39,7 @@ export const APPS: Record<AppId, AppDef> = {
   about: { title: 'About Me', emoji: '🙋', c1: '#fb923c', c2: '#db2777', w: 860, h: 500, single: true, pin: true, load: () => import('./apps/about') },
   resume: { title: 'Resume.pdf', emoji: '📄', c1: '#f87171', c2: '#b91c1c', w: 720, h: 540, single: true, load: () => import('./apps/resume') }
 };
-const PINNED: AppId[] = ['explorer', 'browser', 'terminal', 'mail', 'settings', 'taskmgr', 'photos', 'notepad'];
+const PINNED: AppId[] = ['welcome', 'projects', 'skills', 'journey', 'photos', 'explorer', 'terminal', 'mail', 'settings'];
 const SVG = (p: string, fill = 'none') => `<svg viewBox="0 0 24 24" width="18" height="18" fill="${fill}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
   wifi: SVG('<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/>'), nowifi: SVG('<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M3 3l18 18"/>'),
@@ -49,7 +53,7 @@ const LOGO = `<svg viewBox="0 0 96 96" width="96" height="96"><defs><linearGradi
 
 export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void; hide(): void; handleEscape(): boolean; visible: boolean } {
   // ---------- settings ----------
-  const S: Settings = Object.assign({ theme: 'dark' as const, accent: '#0067C0', wall: 0, brightness: 100, volume: 70, muted: false, wifi: true, bluetooth: true, saver: false, reduced: false, skipIntro: false, slideshow: false, wallFx: 'duotone' as const, parallax: true, grain: false }, store.get('settings', {}));
+  const S: Settings = Object.assign({ theme: 'dark' as const, accent: '#0067C0', wall: 0, brightness: 100, volume: 70, muted: false, wifi: true, bluetooth: true, saver: false, reduced: false, skipIntro: false, singleClick: true, slideshow: false, wallFx: 'duotone' as const, parallax: true, grain: false }, store.get('settings', {}));
   if (matchMedia('(prefers-reduced-motion: reduce)').matches && store.get('settings', null as any) == null) S.reduced = true;
   S.skipIntro = store.get('skipIntro', S.skipIntro);
 
@@ -125,24 +129,27 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
   // ---------- desktop icons ----------
   interface DIcon { id: string; label: string; emoji: string; c1: string; c2: string; open: () => void; x: number; y: number; }
   const dicons: DIcon[] = [
-    { id: 'pc', label: 'This PC', emoji: '💻', c1: '#60a5fa', c2: '#1d4ed8', open: () => openApp('explorer', { path: 'This PC' }), x: 0, y: 0 },
-    { id: 'bin', label: 'Recycle Bin', emoji: '🗑️', c1: '#94a3b8', c2: '#475569', open: () => openApp('explorer', { path: 'Recycle Bin' }), x: 0, y: 1 },
-    { id: 'proj', label: 'Projects', emoji: '📁', c1: '#fbbf24', c2: '#d97706', open: () => openApp('explorer', { path: 'C:\\Users\\Guest\\Projects' }), x: 0, y: 2 },
-    { id: 'about', label: 'About Me', emoji: '🙋', c1: '#fb923c', c2: '#db2777', open: () => openApp('about'), x: 1, y: 0 },
-    { id: 'resume', label: 'Resume.pdf', emoji: '📄', c1: '#f87171', c2: '#b91c1c', open: () => openApp('resume'), x: 1, y: 1 },
-    { id: 'term', label: 'Terminal', emoji: '⌨️', c1: '#374151', c2: '#111827', open: () => openApp('terminal'), x: 1, y: 2 },
-    { id: 'contact', label: 'Contact', emoji: '✉️', c1: '#60a5fa', c2: '#2563eb', open: () => openApp('mail'), x: 2, y: 0 }
+    { id: 'start', label: 'Start Here', emoji: '🏠', c1: '#38bdf8', c2: '#2563eb', open: () => openApp('welcome'), x: 0, y: 0 },
+    { id: 'about', label: 'About Me', emoji: '🙋', c1: '#fb923c', c2: '#db2777', open: () => openApp('about'), x: 0, y: 1 },
+    { id: 'proj2', label: 'Projects', emoji: '💼', c1: '#60a5fa', c2: '#1d4ed8', open: () => openApp('projects'), x: 0, y: 2 },
+    { id: 'skills', label: 'Skills', emoji: '🛠️', c1: '#34d399', c2: '#047857', open: () => openApp('skills'), x: 0, y: 3 },
+    { id: 'journey', label: 'Journey', emoji: '🎓', c1: '#a78bfa', c2: '#6d28d9', open: () => openApp('journey'), x: 0, y: 4 },
+    { id: 'photos', label: 'Photos', emoji: '🖼️', c1: '#f472b6', c2: '#7c3aed', open: () => openApp('photos'), x: 1, y: 0 },
+    { id: 'resume', label: 'Resume', emoji: '📄', c1: '#f87171', c2: '#b91c1c', open: () => openApp('resume'), x: 1, y: 1 },
+    { id: 'contact', label: 'Contact Me', emoji: '✉️', c1: '#60a5fa', c2: '#2563eb', open: () => openApp('mail'), x: 1, y: 2 },
+    { id: 'files', label: 'Files', emoji: '📁', c1: '#fbbf24', c2: '#d97706', open: () => openApp('explorer'), x: 1, y: 3 },
+    { id: 'term', label: 'Terminal', emoji: '⌨️', c1: '#374151', c2: '#111827', open: () => openApp('terminal'), x: 1, y: 4 }
   ];
-  const saved = store.get<Record<string, [number, number]>>('icons', {}); const CW = 92, CH = 98;
+  const saved = store.get<Record<string, [number, number]>>('icons2', {}); const CW = 92, CH = 98;
   function placeIcon(d: DIcon, el: HTMLElement) { el.style.left = 10 + d.x * CW + 'px'; el.style.top = 10 + d.y * CH + 'px'; }
   function renderIcons() {
     icons.innerHTML = '';
     dicons.forEach(d => { if (saved[d.id]) [d.x, d.y] = saved[d.id];
-      const el = h('div', { class: 'di', tabindex: '0', role: 'button', 'aria-label': d.label, dataset: { id: d.id }, ondblclick: () => d.open(), onkeydown: (e: KeyboardEvent) => { if (e.key === 'Enter') d.open(); } }, tile(d.emoji, d.c1, d.c2, 40), h('span', {}, d.label)); placeIcon(d, el); icons.append(el);
+      const el = h('div', { class: 'di', tabindex: '0', role: 'button', 'aria-label': d.label, dataset: { id: d.id }, ondblclick: () => { if (!S.singleClick) d.open(); }, onkeydown: (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') d.open(); }, title: S.singleClick ? 'Click to open' : 'Double-click to open' }, tile(d.emoji, d.c1, d.c2, 40), h('span', {}, d.label)); placeIcon(d, el); icons.append(el);
       el.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.stopPropagation(); closeFlyouts(); if (!e.ctrlKey) $$('.di', icons).forEach(x => x.classList.remove('sel')); el.classList.add('sel'); el.focus();
         const r = desk.getBoundingClientRect(), s = r.width / desk.offsetWidth || 1; const sx = e.clientX, sy = e.clientY, ox = el.offsetLeft, oy = el.offsetTop; let moved = false; el.setPointerCapture(e.pointerId);
         const mv = (ev: PointerEvent) => { const dx = (ev.clientX - sx) / s, dy = (ev.clientY - sy) / s; if (!moved && Math.hypot(dx, dy) < 4) return; moved = true; el.classList.add('drag'); el.style.left = ox + dx + 'px'; el.style.top = oy + dy + 'px'; };
-        const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.classList.remove('drag'); if (moved) { d.x = clamp(Math.round((el.offsetLeft - 10) / CW), 0, Math.floor((desk.offsetWidth - 60) / CW)); d.y = clamp(Math.round((el.offsetTop - 10) / CH), 0, Math.floor((desk.offsetHeight - 80) / CH)); placeIcon(d, el); saved[d.id] = [d.x, d.y]; store.set('icons', saved); } };
+        const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.classList.remove('drag'); if (!moved && S.singleClick) d.open(); if (moved) { d.x = clamp(Math.round((el.offsetLeft - 10) / CW), 0, Math.floor((desk.offsetWidth - 60) / CW)); d.y = clamp(Math.round((el.offsetTop - 10) / CH), 0, Math.floor((desk.offsetHeight - 80) / CH)); placeIcon(d, el); saved[d.id] = [d.x, d.y]; store.set('icons2', saved); } };
         el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); }); });
   }
   // selection rubber band
@@ -173,7 +180,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
   const appBtns = h('div', { class: 'tbapps' }); const preview = h('div', { class: 'tbprev' }); layer.append(preview); let prevTimer = 0;
   const btnFor = new Map<string, HTMLElement>();
   function tbButton(app: AppId) {
-    const def = APPS[app]; const b = h('button', { class: 'tbb', 'aria-label': def.title, title: '' }, tile(def.emoji, def.c1, def.c2, 26), h('i', { class: 'dot' })); btnFor.set(app, b);
+    const def = APPS[app]; const b = h('button', { class: 'tbb', 'aria-label': def.title, title: def.title }, tile(def.emoji, def.c1, def.c2, 26), h('i', { class: 'dot' })); btnFor.set(app, b);
     b.addEventListener('click', () => { hidePrev(); const ws = wm.wins.filter(w => w.app === app); if (!ws.length) return openApp(app);
       if (ws.length === 1) { const w = ws[0]; if (w.min) wm.focus(w); else if (wm.active === w) wm.minimize(w); else wm.focus(w); } else { const i = ws.indexOf(wm.active as Win); wm.focus(ws[(i + 1) % ws.length]); } });
     b.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); const p = loc(e); const ws = wm.wins.filter(w => w.app === app); showMenu(p.x - 50, p.y - 90, [{ label: def.title, icon: def.emoji, action: () => openApp(app) }, ...(ws.length ? [{ label: 'Close window', icon: '✕', action: () => ws.forEach(w => wm.close(w)) }] : [])]); });
@@ -218,7 +225,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
     function render(q = '') {
       list.innerHTML = ''; q = q.trim().toLowerCase();
       if (q) { const a = (Object.keys(APPS) as AppId[]).filter(id => APPS[id].title.toLowerCase().includes(q)); const p = data.projects.filter(x => (x.title + x.stack.join(' ')).toLowerCase().includes(q));
-        list.append(h('h5', {}, 'Best match'), ...a.map(id => h('button', { class: 'sm-row', onclick: () => openApp(id) }, tile(APPS[id].emoji, APPS[id].c1, APPS[id].c2, 28), h('span', {}, APPS[id].title), h('em', {}, 'App'))), ...p.map(x => h('button', { class: 'sm-row', onclick: () => openApp('explorer', { path: 'C:\\Users\\Guest\\Projects\\' + x.slug }) }, tile('📁', '#fbbf24', '#d97706', 28), h('span', {}, x.title), h('em', {}, 'Project'))));
+        list.append(h('h5', {}, 'Best match'), ...a.map(id => h('button', { class: 'sm-row', onclick: () => openApp(id) }, tile(APPS[id].emoji, APPS[id].c1, APPS[id].c2, 28), h('span', {}, APPS[id].title), h('em', {}, 'App'))), ...p.map(x => h('button', { class: 'sm-row', onclick: () => openApp('projects', { slug: x.slug }) }, tile('📁', '#fbbf24', '#d97706', 28), h('span', {}, x.title), h('em', {}, 'Project'))));
         if (!a.length && !p.length) list.append(h('p', { class: 'sm-none' }, `No results for "${q}"`)); return; }
       list.append(h('div', { class: 'sm-h' }, h('h5', {}, 'Pinned')), h('div', { class: 'sm-grid' }, (Object.keys(APPS) as AppId[]).map(appCell)), h('div', { class: 'sm-h' }, h('h5', {}, 'Recommended')),
         h('div', { class: 'sm-rec' }, data.projects.slice(0, 4).map(x => h('button', { class: 'sm-row', onclick: () => openApp('explorer', { path: 'C:\\Users\\Guest\\Projects\\' + x.slug }) }, tile('📁', '#fbbf24', '#d97706', 28), h('span', {}, x.title), h('em', {}, 'Recently updated')))));
@@ -293,7 +300,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
   }
   let welcomed = false;
   function welcome() {
-    if (welcomed) return; welcomed = true; setTimeout(() => notify('Welcome! 👋', 'Try typing `help` in Terminal (Ctrl+Alt+T).', '👋'), 900);
+    if (welcomed) return; welcomed = true; setTimeout(() => { if (store.get('welcomeOff', false)) notify('Welcome! 👋', 'Open Start Here on the desktop to look around.', '👋'); else openApp('welcome'); }, 900);
     setTimeout(() => notify('Windows Defender', 'No threats found. Your portfolio is looking secure. 🛡️', '🛡️'), 24000); setTimeout(() => notify('Battery saver', 'Battery saver turns on at 20%. (This is a demo; you are fine.)', '🔋'), 52000);
   }
   function lock() { closeFlyouts(); lockScreen(); }
