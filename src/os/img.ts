@@ -16,8 +16,8 @@ const stem = (p: Photo) => p.file.replace(/\.\w+$/, '');
 export const meta = (p: Photo) => META[stem(p)] || { blur: '', w: 4, h: 3 };
 export const ratio = (p: Photo) => { const m = meta(p); return m.w / m.h; };
 const webp = (p: Photo, w: number) => INLINE[`${stem(p)}-${w}.webp`] || `${BASE}${stem(p)}-${w}.webp`;
-export const srcset = (p: Photo) => `${webp(p, 480)} 480w, ${webp(p, 960)} 960w`;
-export const imgSrc = (p: Photo, big = false) => big && !INLINE[`${stem(p)}-960.webp`] ? BASE + p.file : webp(p, big ? 960 : 480);
+export const srcset = (p: Photo) => '';  // always the original file: no resizing, no recompression
+export const imgSrc = (p: Photo, _big = false) => INLINE[p.file] || BASE + p.file;
 export const fp = (p: Photo) => `${p.focal?.x ?? 50}% ${p.focal?.y ?? 40}%`;
 export const initials = () => data.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
 

@@ -7,6 +7,7 @@ for (const f of fs.readdirSync(dir).filter(f => /^me-\d+\.(jpe?g|png|webp)$/i.te
   const stem = f.replace(/\.\w+$/, ''); const img = sharp(path.join(dir, f), { failOn: 'none' }).rotate(); const m = await img.clone().metadata();
   const w = m.orientation && m.orientation > 4 ? m.height : m.width, h = m.orientation && m.orientation > 4 ? m.width : m.height;
   for (const size of [480, 960]) { const out = path.join(dir, `${stem}-${size}.webp`); await img.clone().resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true }).webp({ quality: 74 }).toFile(out); if (process.env.INLINE === '1') INLINE[`${stem}-${size}.webp`] = 'data:image/webp;base64,' + fs.readFileSync(out).toString('base64'); }
+  if (process.env.INLINE === '1') INLINE[f] = 'data:image/jpeg;base64,' + fs.readFileSync(path.join(dir, f)).toString('base64');
   const blur = await img.clone().resize({ width: 24, height: 24, fit: 'inside' }).jpeg({ quality: 40 }).toBuffer();
   META[stem] = { blur: 'data:image/jpeg;base64,' + blur.toString('base64'), w, h };
   console.log('processed', f);
