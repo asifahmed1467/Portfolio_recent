@@ -283,7 +283,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
   }
   let welcomed = false;
   function welcome() {
-    if (welcomed) return; welcomed = true; setTimeout(() => { if (store.get('welcomeOff', false)) notify('Welcome! 👋', 'Open Start Here on the desktop to look around.', '👋'); else openApp('welcome'); setTimeout(() => { openApp('spotify', { x: Math.max(240, desk.offsetWidth - 470), y: Math.max(10, desk.offsetHeight - 490) }); notify('Spotify', 'SEM DEMORA is playing, full song. Use the player to pause or change the volume. 🎧', '🎧'); }, 2600); }, 900);
+    if (welcomed) return; welcomed = true; setTimeout(() => { if (store.get('welcomeOff', false)) notify('Welcome! 👋', 'Open Start Here on the desktop to look around.', '👋'); else openApp('welcome'); setTimeout(() => { openApp('spotify', { x: Math.max(240, desk.offsetWidth - 470), y: Math.max(10, desk.offsetHeight - 490) }); notify('Spotify', 'SEM DEMORA is loading. Press ▶ in the player if it does not start by itself. 🎧', '🎧'); }, 2600); }, 900);
     setTimeout(() => notify('Windows Defender', 'No threats found. Your portfolio is looking secure. 🛡️', '🛡️'), 24000); setTimeout(() => notify('Battery saver', 'Battery saver turns on at 20%. (This is a demo; you are fine.)', '🔋'), 52000);
   }
   function lock() { closeFlyouts(); lockScreen(); }

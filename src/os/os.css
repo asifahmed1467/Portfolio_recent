@@ -286,6 +286,6 @@
 .os.reduced .win .wb>div>*,.os.reduced .wall:before,.os.reduced .wall:after,.os.reduced .win .tb:after,.os.reduced .win .wb :is(h1,h2){animation:none}
 @media (max-width:1000px){.os .sd{width:62px}}
 
-.sp-frame{height:210px!important}
+.sp-frame{height:166px!important}
 
 .sp-yt{overflow:hidden}.sp-yt iframe{width:100%;height:100%;border:0}
