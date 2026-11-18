@@ -54,9 +54,10 @@ const LOGO = `<svg viewBox="0 0 96 96" width="96" height="96"><defs><linearGradi
 
 export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void; hide(): void; handleEscape(): boolean; visible: boolean } {
   // ---------- settings ----------
-  const S: Settings = Object.assign({ theme: 'dark' as const, accent: '#0067C0', wall: 0, brightness: 100, volume: 70, muted: false, wifi: true, bluetooth: true, saver: false, reduced: false, skipIntro: false, singleClick: true, slideshow: false, wallFx: 'duotone' as const, parallax: true, grain: false }, store.get('settings', {}));
+  const S: Settings = Object.assign({ theme: 'dark' as const, accent: '#0067C0', wall: 0, brightness: 100, volume: 70, muted: false, wifi: true, bluetooth: true, saver: false, reduced: false, skipIntro: false, singleClick: true, slideshow: false, wallFx: 'none' as const, parallax: true, grain: false }, store.get('settings', {}));
   if (matchMedia('(prefers-reduced-motion: reduce)').matches && store.get('settings', null as any) == null) S.reduced = true;
   S.skipIntro = store.get('skipIntro', S.skipIntro);
+  if (!store.get('fxReset', false)) { S.wallFx = 'none' as any; S.grain = false; store.set('fxReset', true); }
 
   // ---------- DOM skeleton ----------
   const root = h('div', { class: 'os', id: 'os' });

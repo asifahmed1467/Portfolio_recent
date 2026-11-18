@@ -51,8 +51,9 @@ export function build(body: HTMLElement, _win: Win, os: OS) {
   }
   const STEP = 1 / 60;
   function loop(ts: number) { if (!active) return; const dt = Math.min(0.25, (ts - last) / 1000 || 0); last = ts; acc += dt; let n = 0; while (acc >= STEP && n++ < 8) { update(STEP); acc -= STEP; } draw(); raf = requestAnimationFrame(loop); }
-  const setActive = (a: boolean) => { if (a === active) return; active = a; keys = {}; if (a) { last = performance.now(); acc = 0; raf = requestAnimationFrame(loop); } else { cancelAnimationFrame(raf); draw(); } };
+  const gk = (down: boolean) => (e: KeyboardEvent) => { if (!active) return; const t = e.target as HTMLElement; if (t && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return; key(e, down); }; const gd = gk(true), gu = gk(false);
+  const setActive = (a: boolean) => { if (a === active) return; active = a; keys = {}; if (a) { window.addEventListener('keydown', gd); window.addEventListener('keyup', gu); } else { window.removeEventListener('keydown', gd); window.removeEventListener('keyup', gu); } if (a) { last = performance.now(); acc = 0; raf = requestAnimationFrame(loop); } else { cancelAnimationFrame(raf); draw(); } };
   const key = (e: KeyboardEvent, down: boolean) => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)) e.preventDefault(); keys[k] = down; if (down && k === ' ' && state !== 'play') { reset(); state = 'play'; } };
-  cvs.addEventListener('keydown', e => { e.stopPropagation(); key(e, true); }); cvs.addEventListener('keyup', e => key(e, false)); cvs.addEventListener('blur', () => { keys = {}; }); cvs.addEventListener('pointerdown', () => cvs.focus());
+  cvs.addEventListener('keydown', e => { e.stopPropagation(); e.stopImmediatePropagation(); key(e, true); }); cvs.addEventListener('keyup', e => key(e, false)); cvs.addEventListener('blur', () => { keys = {}; }); cvs.addEventListener('pointerdown', () => { cvs.focus(); if (state !== 'play') { reset(); state = 'play'; } });
   draw(); void os; return { onFocus: () => { setActive(true); cvs.focus(); }, onBlur: () => setActive(false), onClose: () => setActive(false) };
 }

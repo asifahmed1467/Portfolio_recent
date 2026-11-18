@@ -44,7 +44,7 @@ export function build(body: HTMLElement, win: Win, os: OS, arg?: { project?: str
   function tile(it: LbItem, i: number, list: LbItem[], set: 'p' | 'w') {
     const r = it.photo ? ratio(it.photo) : 1.6; const cls = r < 0.95 ? 'tall' : r > 1.2 ? 'wide' : 'sq';
     const media = it.photo ? photoEl(it.photo, { sizes: '(max-width:700px) 90vw, 360px' }) : h('div', { class: 'pic ready' }, h('img', { loading: 'lazy', src: it.url, alt: it.alt }));
-    const b = h('button', { class: 'ph-t ' + cls, style: { '--d': i * 60 + 'ms' }, 'aria-label': 'Open ' + it.caption, onclick: () => { lb = Lightbox(root, list, { getThumb: k => thumbs[k] || null, reduced }); lb.open(i); } }, media, h('span', { class: 'ph-cap' }, it.caption)); thumbs[i] = b; return b;
+    const b = h('button', { class: 'ph-t ' + cls, style: { '--d': i * 90 + 'ms', aspectRatio: String(r) }, 'aria-label': 'Open ' + it.caption, onclick: () => { lb = Lightbox(root, list, { getThumb: k => thumbs[k] || null, reduced }); lb.open(i); } }, media, h('span', { class: 'ph-cap' }, it.caption)); thumbs[i] = b; return b;
   }
   function grid_(list: LbItem[], set: 'p' | 'w') { thumbs.length = 0; return h('div', { class: 'ph-grid bento' }, list.map((it, i) => tile(it, i, list, set))); }
   function setTab(t: Tab) {
