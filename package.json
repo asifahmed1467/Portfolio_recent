@@ -1,0 +1,23 @@
+{
+  "name": "portfolio-latest",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "images": "node scripts/images.mjs",
+    "bundle": "esbuild src/app.js --bundle --minify --format=iife --target=es2019 --outfile=dist/bundle.js --log-level=warning",
+    "build": "npm run images && npm run bundle && node scripts/assemble.mjs dist/index.html && node scripts/copy-images.mjs dist/images",
+    "build:pages": "npm run images && npm run bundle && node scripts/assemble.mjs docs/index.html && node scripts/copy-images.mjs docs/images",
+    "build:single": "INLINE=1 npm run images && npm run bundle && node scripts/assemble.mjs dist/portfolio-single.html && npm run images",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "qrcode-generator": "^1.4.4",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "sharp": "^0.35.5",
+    "typescript": "^5.6.0"
+  },
+  "description": "Asif Ahmed: 3D gaming-room portfolio with a Windows-11-style desktop OS"
+}
