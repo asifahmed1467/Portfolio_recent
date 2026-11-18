@@ -287,3 +287,5 @@
 @media (max-width:1000px){.os .sd{width:62px}}
 
 .sp-frame{height:210px!important}
+
+.sp-yt{overflow:hidden}.sp-yt iframe{width:100%;height:100%;border:0}
