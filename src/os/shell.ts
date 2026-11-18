@@ -24,6 +24,7 @@ export const APPS: Record<AppId, AppDef> = {
   projects: { title: 'Projects', emoji: '💼', c1: '#60a5fa', c2: '#1d4ed8', w: 900, h: 560, single: true, pin: true, load: () => import('./apps/projects') },
   skills: { title: 'Skills', emoji: '🛠️', c1: '#34d399', c2: '#047857', w: 820, h: 540, single: true, pin: true, load: () => import('./apps/skills') },
   journey: { title: 'Journey', emoji: '🎓', c1: '#a78bfa', c2: '#6d28d9', w: 760, h: 560, single: true, pin: true, load: () => import('./apps/journey') },
+  spotify: { title: 'Spotify', emoji: '🎧', c1: '#1ed760', c2: '#0b6b30', w: 440, h: 470, single: true, pin: true, load: () => import('./apps/spotify') },
   explorer: { title: 'File Explorer', emoji: '📁', c1: '#fbbf24', c2: '#d97706', w: 860, h: 500, pin: true, load: () => import('./apps/explorer') },
   browser: { title: 'Edge Browser', emoji: '🌐', c1: '#38bdf8', c2: '#0f766e', w: 900, h: 520, single: true, pin: true, load: () => import('./apps/browser') },
   terminal: { title: 'Terminal', emoji: '⌨️', c1: '#374151', c2: '#111827', w: 860, h: 480, pin: true, load: () => import('./apps/terminal') },
@@ -39,7 +40,7 @@ export const APPS: Record<AppId, AppDef> = {
   about: { title: 'About Me', emoji: '🙋', c1: '#fb923c', c2: '#db2777', w: 860, h: 500, single: true, pin: true, load: () => import('./apps/about') },
   resume: { title: 'Resume.pdf', emoji: '📄', c1: '#f87171', c2: '#b91c1c', w: 720, h: 540, single: true, load: () => import('./apps/resume') }
 };
-const PINNED: AppId[] = ['welcome', 'projects', 'skills', 'journey', 'photos', 'explorer', 'terminal', 'mail', 'settings'];
+const PINNED: AppId[] = ['spotify', 'welcome', 'projects', 'skills', 'journey', 'photos', 'explorer', 'terminal', 'mail', 'settings'];
 const SVG = (p: string, fill = 'none') => `<svg viewBox="0 0 24 24" width="18" height="18" fill="${fill}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
   wifi: SVG('<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/>'), nowifi: SVG('<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M3 3l18 18"/>'),
@@ -122,44 +123,27 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
     const def = APPS[id]; closeFlyouts(); if (!def) return;
     if (def.single) { const ex = wm.wins.find(w => w.app === id); if (ex) { wm.focus(ex); (ex as any).hooks.onArg?.(arg); return; } }
     if (!apps.has(id)) apps.set(id, def.load()); sfx.click();
-    apps.get(id)!.then(mod => { const w = wm.open({ app: id, title: def.title, icon: tile(def.emoji, def.c1, def.c2, 18), w: def.w, h: def.h, build: (body, win) => mod.build(body, win, os, arg) }); void w; }).catch(err => notify('App failed to start', String(err), '⚠️'));
+    apps.get(id)!.then(mod => { const w = wm.open({ app: id, title: def.title, icon: tile(def.emoji, def.c1, def.c2, 18), w: def.w, h: def.h, x: arg?.x, y: arg?.y, build: (body, win) => mod.build(body, win, os, arg) }); void w; }).catch(err => notify('App failed to start', String(err), '⚠️'));
   }
   os.openApp = openApp; os.closeApp = (id: AppId) => wm.wins.filter(w => w.app === id).forEach(w => wm.close(w));
 
-  // ---------- desktop icons ----------
-  interface DIcon { id: string; label: string; emoji: string; c1: string; c2: string; open: () => void; x: number; y: number; }
-  const dicons: DIcon[] = [
-    { id: 'start', label: 'Start Here', emoji: '🏠', c1: '#38bdf8', c2: '#2563eb', open: () => openApp('welcome'), x: 0, y: 0 },
-    { id: 'about', label: 'About Me', emoji: '🙋', c1: '#fb923c', c2: '#db2777', open: () => openApp('about'), x: 0, y: 1 },
-    { id: 'proj2', label: 'Projects', emoji: '💼', c1: '#60a5fa', c2: '#1d4ed8', open: () => openApp('projects'), x: 0, y: 2 },
-    { id: 'skills', label: 'Skills', emoji: '🛠️', c1: '#34d399', c2: '#047857', open: () => openApp('skills'), x: 0, y: 3 },
-    { id: 'journey', label: 'Journey', emoji: '🎓', c1: '#a78bfa', c2: '#6d28d9', open: () => openApp('journey'), x: 0, y: 4 },
-    { id: 'photos', label: 'Photos', emoji: '🖼️', c1: '#f472b6', c2: '#7c3aed', open: () => openApp('photos'), x: 1, y: 0 },
-    { id: 'resume', label: 'Resume', emoji: '📄', c1: '#f87171', c2: '#b91c1c', open: () => openApp('resume'), x: 1, y: 1 },
-    { id: 'contact', label: 'Contact Me', emoji: '✉️', c1: '#60a5fa', c2: '#2563eb', open: () => openApp('mail'), x: 1, y: 2 },
-    { id: 'files', label: 'Files', emoji: '📁', c1: '#fbbf24', c2: '#d97706', open: () => openApp('explorer'), x: 1, y: 3 },
-    { id: 'term', label: 'Terminal', emoji: '⌨️', c1: '#374151', c2: '#111827', open: () => openApp('terminal'), x: 1, y: 4 }
+  // ---------- left menu (animated sidebar; every item opens inside a window) ----------
+  const MENU: { id: AppId; label: string; emoji: string; c1: string; c2: string }[] = [
+    { id: 'welcome', label: 'Home', emoji: '🏠', c1: '#38bdf8', c2: '#2563eb' }, { id: 'about', label: 'About', emoji: '🙋', c1: '#fb923c', c2: '#db2777' },
+    { id: 'skills', label: 'Skills', emoji: '🛠️', c1: '#34d399', c2: '#047857' }, { id: 'projects', label: 'Projects', emoji: '💼', c1: '#60a5fa', c2: '#1d4ed8' },
+    { id: 'journey', label: 'Journey', emoji: '🎓', c1: '#a78bfa', c2: '#6d28d9' }, { id: 'photos', label: 'Photos', emoji: '🖼️', c1: '#f472b6', c2: '#7c3aed' },
+    { id: 'resume', label: 'Resume', emoji: '📄', c1: '#f87171', c2: '#b91c1c' }, { id: 'mail', label: 'Contact', emoji: '✉️', c1: '#60a5fa', c2: '#2563eb' },
+    { id: 'terminal', label: 'Terminal', emoji: '⌨️', c1: '#4b5563', c2: '#111827' }, { id: 'invaders', label: 'Play a game', emoji: '🎮', c1: '#a855f7', c2: '#be185d' }
   ];
-  const saved = store.get<Record<string, [number, number]>>('icons2', {}); const CW = 92, CH = 98;
-  function placeIcon(d: DIcon, el: HTMLElement) { el.style.left = 10 + d.x * CW + 'px'; el.style.top = 10 + d.y * CH + 'px'; }
+  const sideBtns = new Map<AppId, HTMLElement>();
   function renderIcons() {
-    icons.innerHTML = '';
-    dicons.forEach(d => { if (saved[d.id]) [d.x, d.y] = saved[d.id];
-      const el = h('div', { class: 'di', tabindex: '0', role: 'button', 'aria-label': d.label, dataset: { id: d.id }, ondblclick: () => { if (!S.singleClick) d.open(); }, onkeydown: (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') d.open(); }, title: S.singleClick ? 'Click to open' : 'Double-click to open' }, tile(d.emoji, d.c1, d.c2, 40), h('span', {}, d.label)); placeIcon(d, el); icons.append(el);
-      el.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.stopPropagation(); closeFlyouts(); if (!e.ctrlKey) $$('.di', icons).forEach(x => x.classList.remove('sel')); el.classList.add('sel'); el.focus();
-        const r = desk.getBoundingClientRect(), s = r.width / desk.offsetWidth || 1; const sx = e.clientX, sy = e.clientY, ox = el.offsetLeft, oy = el.offsetTop; let moved = false; el.setPointerCapture(e.pointerId);
-        const mv = (ev: PointerEvent) => { const dx = (ev.clientX - sx) / s, dy = (ev.clientY - sy) / s; if (!moved && Math.hypot(dx, dy) < 4) return; moved = true; el.classList.add('drag'); el.style.left = ox + dx + 'px'; el.style.top = oy + dy + 'px'; };
-        const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.classList.remove('drag'); if (!moved && S.singleClick) d.open(); if (moved) { d.x = clamp(Math.round((el.offsetLeft - 10) / CW), 0, Math.floor((desk.offsetWidth - 60) / CW)); d.y = clamp(Math.round((el.offsetTop - 10) / CH), 0, Math.floor((desk.offsetHeight - 80) / CH)); placeIcon(d, el); saved[d.id] = [d.x, d.y]; store.set('icons2', saved); } };
-        el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); }); });
+    icons.innerHTML = ''; sideBtns.clear();
+    const list = h('div', { class: 'sd-list' }, MENU.map((m, i) => { const b = h('button', { class: 'sd-i', style: { '--i': String(i) }, 'aria-label': m.label, onclick: () => { sfx.click(); const ex = wm.wins.find(w => w.app === m.id); if (ex && !ex.min && wm.active === ex) return wm.focus(ex); openApp(m.id); } }, tile(m.emoji, m.c1, m.c2, 28), h('span', {}, m.label), h('i', { class: 'sd-dot' })); sideBtns.set(m.id, b); return b; }));
+    const np = h('button', { class: 'sd-np', style: { '--i': String(MENU.length) }, 'aria-label': 'Open Spotify: SEM DEMORA', onclick: () => openApp('spotify') }, h('span', { html: SPOTIFY_LOGO_S }), h('div', {}, h('b', {}, 'SEM DEMORA'), h('small', {}, 'Spotify · tap to play')), h('div', { class: 'sd-eq' }, h('i'), h('i'), h('i'), h('i')));
+    icons.append(h('aside', { class: 'sd', 'aria-label': 'Portfolio menu' }, h('div', { class: 'sd-me', style: { '--i': '0' } }, Avatar(38), h('div', {}, h('b', {}, data.name), h('small', {}, data.role))), list, np)); syncSide();
   }
-  // selection rubber band
-  desk.addEventListener('pointerdown', e => {
-    if (e.target !== desk && e.target !== icons && !wall.contains(e.target as Node)) return; closeFlyouts(); if (e.button !== 0 || tablet) return;
-    $$('.di', icons).forEach(x => x.classList.remove('sel')); const r = desk.getBoundingClientRect(), s = r.width / desk.offsetWidth || 1; const x0 = (e.clientX - r.left) / s, y0 = (e.clientY - r.top) / s; const box = h('div', { class: 'marq' }); desk.append(box);
-    const mv = (ev: PointerEvent) => { const x1 = (ev.clientX - r.left) / s, y1 = (ev.clientY - r.top) / s; const L = Math.min(x0, x1), T = Math.min(y0, y1), W = Math.abs(x1 - x0), H = Math.abs(y1 - y0); Object.assign(box.style, { left: L + 'px', top: T + 'px', width: W + 'px', height: H + 'px' });
-      $$('.di', icons).forEach(i => { const hit = i.offsetLeft < L + W && i.offsetLeft + i.offsetWidth > L && i.offsetTop < T + H && i.offsetTop + i.offsetHeight > T; i.classList.toggle('sel', hit); }); };
-    const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); box.remove(); }; window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
-  });
+  const SPOTIFY_LOGO_S = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1ed760"/><path d="M5.6 9.2c4.2-1.2 9-.9 12.8 1.3M6.3 12.5c3.5-1 7.5-.7 10.6 1.1M7 15.6c2.8-.8 5.8-.5 8.3.9" stroke="#000" stroke-width="1.7" stroke-linecap="round" fill="none"/></svg>';
+  function syncSide() { sideBtns.forEach((b, id) => { const ws = wm.wins.filter(w => w.app === id); b.classList.toggle('run', ws.length > 0); b.classList.toggle('act', ws.some(w => w === wm.active && !w.min)); }); }
   desk.addEventListener('contextmenu', e => {
     if ((e.target as HTMLElement).closest('.win')) return; e.preventDefault(); const p = loc(e); sfx.click();
     showMenu(p.x, p.y, [
@@ -170,10 +154,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
       { sep: true }, { label: 'Open Terminal here', icon: '⌨️', action: () => openApp('terminal', { cwd: 'C:\\Users\\Guest\\Desktop' }) }, { label: 'Classic view', icon: '📃', action: () => classic() }
     ]);
   });
-  function newItem(label: string, emoji: string, c1: string, c2: string) {
-    const used = new Set(dicons.map(d => d.x + ',' + d.y)); let x = 3, y = 0; while (used.has(x + ',' + y)) { y++; if (y > 5) { y = 0; x++; } }
-    const d: DIcon = { id: 'n' + Date.now(), label, emoji, c1, c2, x, y, open: () => notify(label, 'This item is empty. (It is a demo, but it was created!)', emoji) }; dicons.push(d); renderIcons();
-  }
+  function newItem(label: string, emoji: string, _c1: string, _c2: string) { notify(label, 'Created! (This is a demo, so it is not saved.)', emoji); }
 
   // ---------- taskbar ----------
   const clockEl = h('button', { class: 'tray-btn clock', 'aria-label': 'Date and time' }); const trayIcons = h('button', { class: 'tray-btn tray-ic', 'aria-label': 'Quick settings' }); const bellBtn = h('button', { class: 'tray-btn', 'aria-label': 'Notifications' });
@@ -204,6 +185,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
     const running = new Set(wm.wins.map(w => w.app as AppId));
     running.forEach(a => { if (!btnFor.has(a)) appBtns.append(tbButton(a)); });
     btnFor.forEach((b, a) => { const ws = wm.wins.filter(w => w.app === a); b.classList.toggle('run', ws.length > 0); b.classList.toggle('act', ws.some(w => w === wm.active && !w.min)); if (!ws.length && !PINNED.includes(a as AppId)) { b.remove(); btnFor.delete(a); } });
+    syncSide();
     launcher.classList.toggle('on', tablet && !wm.wins.some(w => !w.min) && !booting);
   }
   wm.onChange = syncTaskbar;
@@ -300,7 +282,7 @@ export function createOS(host: HTMLElement, flat: boolean): OS & { show(): void;
   }
   let welcomed = false;
   function welcome() {
-    if (welcomed) return; welcomed = true; setTimeout(() => { if (store.get('welcomeOff', false)) notify('Welcome! 👋', 'Open Start Here on the desktop to look around.', '👋'); else openApp('welcome'); }, 900);
+    if (welcomed) return; welcomed = true; setTimeout(() => { if (store.get('welcomeOff', false)) notify('Welcome! 👋', 'Open Start Here on the desktop to look around.', '👋'); else openApp('welcome'); setTimeout(() => { openApp('spotify', { x: Math.max(240, desk.offsetWidth - 470), y: Math.max(10, desk.offsetHeight - 490) }); notify('Spotify', 'Press ▶ to play SEM DEMORA. Log in inside the player for the full song. 🎧', '🎧'); }, 2600); }, 900);
     setTimeout(() => notify('Windows Defender', 'No threats found. Your portfolio is looking secure. 🛡️', '🛡️'), 24000); setTimeout(() => notify('Battery saver', 'Battery saver turns on at 20%. (This is a demo; you are fine.)', '🔋'), 52000);
   }
   function lock() { closeFlyouts(); lockScreen(); }

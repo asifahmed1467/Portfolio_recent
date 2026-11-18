@@ -33,7 +33,7 @@ export class WM {
   open(o: OpenOpts): Win {
     const { w: W, h: H } = this.size; const n = this.wins.length;
     const ww = Math.min(o.w || 760, W - 20), hh = Math.min(o.h || 480, H - 20);
-    const x = o.x ?? clamp(60 + (n % 6) * 34 + Math.random() * 20, 0, Math.max(0, W - ww)), y = o.y ?? clamp(24 + (n % 6) * 28, 0, Math.max(0, H - hh));
+    const x = o.x ?? clamp((W > 1000 ? 236 : 40) + (n % 6) * 30 + Math.random() * 16, 0, Math.max(0, W - ww)), y = o.y ?? clamp(24 + (n % 6) * 28, 0, Math.max(0, H - hh));
     const titleEl = h('span', { class: 'tt' }, o.title); const body = h('div', { class: 'wb' });
     const btn = (cls: string, label: string, glyph: string, fn: (e: Event) => void) => h('button', { class: 'cb ' + cls, 'aria-label': label, title: label, onclick: (e: Event) => { e.stopPropagation(); fn(e); } }, glyph);
     let win!: Win;
