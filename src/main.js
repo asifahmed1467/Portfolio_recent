@@ -8,17 +8,17 @@ import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLigh
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 // ---------- sound (synth, no assets) ----------
-let actx = null, soundOn = true, master = null, vol = 0.7;
+let actx = null, soundOn = true, master = null, vol = 0.7, lastClick = -1;
 const out = () => { if (!actx) return null; if (!master) { master = actx.createGain(); master.gain.value = vol; master.connect(actx.destination); } return master; };
 const sfx = {
   init() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {} },
   toggle() { soundOn = !soundOn; return soundOn; },
   setVolume(v) { vol = v; if (master) master.gain.value = v; },
   uiClick() { sfx.click(0.07); },
-  notify() { if (!actx || !soundOn) return; [880, 1175].forEach((f, i) => { const t = actx.currentTime + i * 0.11, o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.06, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.45); }); },
-  error() { if (!actx || !soundOn) return; const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.5); g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.6); },
-  click(vol = 0.05) {
-    if (!actx || !soundOn) return;
+  notify() { return; if (!actx || !soundOn) return; [880, 1175].forEach((f, i) => { const t = actx.currentTime + i * 0.11, o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.06, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.45); }); },
+  error() { return; if (!actx || !soundOn) return; const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.5); g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.6); },
+  click(vol = 0.09) {
+    if (!actx || !soundOn) return; const now = actx.currentTime; if (now - lastClick < 0.04) return; lastClick = now;
     const t = actx.currentTime, len = 0.03, buf = actx.createBuffer(1, actx.sampleRate * len, actx.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
     const s = actx.createBufferSource(); s.buffer = buf;
@@ -26,6 +26,7 @@ const sfx = {
     const g = actx.createGain(); g.gain.value = vol; s.connect(f); f.connect(g); g.connect(out()); s.start(t);
   },
   chime() {
+    return; // only mouse-click sounds are played
     if (!actx || !soundOn) return;
     [523.25, 659.25, 783.99, 1046.5].forEach((fr, i) => {
       const t = actx.currentTime + i * 0.09, o = actx.createOscillator(), g = actx.createGain();
@@ -34,6 +35,7 @@ const sfx = {
     });
   },
   whoosh() {
+    return; // only mouse-click sounds are played
     if (!actx || !soundOn) return;
     const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
     o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(520, t + 0.5);
@@ -42,6 +44,8 @@ const sfx = {
   }
 };
 window.__sfx = sfx;
+// one soft mouse-click sound for every click anywhere on the page, and nothing else makes noise
+document.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && e.button !== 0) return; sfx.init(); sfx.click(0.09); }, true);
 
 // ---------- helpers ----------
 const mk = (geo, mat, x = 0, y = 0, z = 0, parent) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); if (parent) parent.add(m); return m; };
@@ -80,10 +84,10 @@ function posterTex(kind) {
 }
 
 export function startScene(canvas, hooks) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  const maxDpr = Math.min(window.devicePixelRatio || 1, 1.5); let dpr = maxDpr; renderer.setPixelRatio(dpr);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
   RectAreaLightUniformsLib.init();
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07060d);
@@ -94,7 +98,7 @@ export function startScene(canvas, hooks) {
   // ----- lights -----
   scene.add(new THREE.HemisphereLight(0x6a5cff, 0x140e22, 0.55));
   const key = new THREE.SpotLight(0xffe2c4, 55, 9, 0.62, 0.85, 1.6); key.position.set(1.2, 3.0, 1.9); key.target.position.set(0, 0.8, -0.1);
-  key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0003; key.shadow.normalBias = 0.02; key.shadow.radius = 5; scene.add(key, key.target);
+  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0003; key.shadow.normalBias = 0.02; key.shadow.radius = 5; scene.add(key, key.target);
   const lPurple = new THREE.PointLight(0xa855f7, 6, 7, 2); lPurple.position.set(-0.3, 1.8, -0.9); scene.add(lPurple);
   const lCyan = new THREE.PointLight(0x22d3ee, 4, 6, 2); lCyan.position.set(1.6, 1.4, 0.3); scene.add(lCyan);
   const lPink = new THREE.PointLight(0xff3d9a, 3.5, 6, 2); lPink.position.set(-1.7, 1.3, 0.4); scene.add(lPink);
@@ -260,7 +264,7 @@ export function startScene(canvas, hooks) {
   const zoomLook = new THREE.Vector3(), zoomPos = new THREE.Vector3(), introFrom = new THREE.Vector3(4.4, 2.6, 5.6);
   let mode = 'hidden', zt = 0, zTarget = 0, introT = 0; const pointer = { x: 0, y: 0 }; const look = new THREE.Vector3(); let W = 1, H = 1;
   function layoutZoom() { const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)); const dist = Math.max((SW / 0.9) / (2 * tanV * camera.aspect), (SH / 0.9) / (2 * tanV)); const c = new THREE.Vector3(); screen.getWorldPosition(c); zoomLook.copy(c); zoomPos.set(c.x, c.y, c.z + dist + 0.01); }
-  function resize() { W = canvas.clientWidth || window.innerWidth; H = canvas.clientHeight || window.innerHeight; renderer.setSize(W, H, false); composer.setSize(W, H); bloom.setSize(W, H); camera.aspect = W / H; camera.updateProjectionMatrix(); monitor.updateMatrixWorld(true); layoutZoom(); }
+  function resize() { W = canvas.clientWidth || window.innerWidth; H = canvas.clientHeight || window.innerHeight; renderer.setPixelRatio(dpr); renderer.setSize(W, H, false); composer.setPixelRatio(dpr); composer.setSize(W, H); bloom.setSize(W / 2, H / 2); renderer.shadowMap.needsUpdate = true; camera.aspect = W / H; camera.updateProjectionMatrix(); monitor.updateMatrixWorld(true); layoutZoom(); }
   window.addEventListener('resize', resize); resize();
   const corners = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([a, b]) => new THREE.Vector3(a * SW / 2, b * SH / 2, 0));
   function screenRect() { screen.updateMatrixWorld(true); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; corners.forEach(c => { const v = c.clone().applyMatrix4(screen.matrixWorld).project(camera); const px = (v.x * 0.5 + 0.5) * W, py = (-v.y * 0.5 + 0.5) * H; x0 = Math.min(x0, px); y0 = Math.min(y0, py); x1 = Math.max(x1, px); y1 = Math.max(y1, py); }); return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; }
@@ -282,10 +286,11 @@ export function startScene(canvas, hooks) {
     scx.textAlign = 'center'; scx.fillStyle = '#f5eeff'; scx.font = '900 70px Orbitron, Arial Black, sans-serif'; scx.fillText('ASIF AHMED', w / 2, 150); scx.fillStyle = '#a5f3fc'; scx.font = '600 26px Inter, Arial, sans-serif'; scx.fillText('VOICE AI  ·  NLP  ·  QUANTIZATION', w / 2, 200);
     scx.fillStyle = `rgba(255,255,255,${0.6 + Math.sin(t * 3) * 0.3})`; scx.font = '600 21px Inter, Arial, sans-serif'; scx.fillText(mode === 'overview' ? '▶ CLICK TO SIT DOWN' : '', w / 2, 375); scx.textAlign = 'left'; screenTex.needsUpdate = true; }
 
-  const clock = new THREE.Clock(); let frames = 0, accum = 0; const tmpC = new THREE.Color();
+  const clock = new THREE.Clock(); let ema = 0.016, qf = 0, frames = 0, accum = 0; const tmpC = new THREE.Color();
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.12), t = clock.elapsedTime;
-    if (mode === 'intro') { introT = Math.min(1, introT + dt / 3.4); camera.position.lerpVectors(introFrom, overviewPos, smooth(introT)); look.copy(overviewLook); if (introT >= 1) { mode = 'overview'; hooks.onOverview && hooks.onOverview(); } }
+    ema += (dt - ema) * 0.05; if (++qf % 40 === 0) { if (ema > 0.024 && dpr > 0.7) { dpr = Math.max(0.7, dpr - 0.15); resize(); } else if (ema < 0.0145 && dpr < maxDpr) { dpr = Math.min(maxDpr, dpr + 0.1); resize(); } }
+    if (mode === 'intro') { introT = Math.min(1, introT + dt / 3.4); camera.position.lerpVectors(introFrom, overviewPos, smooth(introT)); look.copy(overviewLook); if (introT >= 1) { renderer.shadowMap.needsUpdate = true; mode = 'overview'; hooks.onOverview && hooks.onOverview(); } }
     else if (mode === 'overview' || mode === 'zoom') { zt += (zTarget - zt) * Math.min(1, dt * 3.2); if (Math.abs(zTarget - zt) < 0.0005) zt = zTarget; const k = smooth(zt);
       camera.position.set(overviewPos.x + pointer.x * 0.4 + Math.sin(t * 0.3) * 0.02, overviewPos.y - pointer.y * 0.2 + Math.sin(t * 0.4) * 0.01, overviewPos.z).lerp(zoomPos, k); look.copy(overviewLook).lerp(zoomLook, k);
       if (mode === 'zoom' && zTarget === 1 && zt === 1) hooks.onZoom && hooks.onZoom(screenRect());
@@ -293,7 +298,7 @@ export function startScene(canvas, hooks) {
     camera.lookAt(look); camera.updateMatrixWorld(); if (mode === 'zoom') hooks.onRect && hooks.onRect(screenRect(), zt);
     const hue = (t * 0.07) % 1;
     if (!(mode === 'zoom' && zt === 1)) for (let i = 0; i < N; i++) { const [x, z] = kpos[i]; const h = (hue + x * 4 + z * 2 + Math.sin(t + x * 6) * 0.05 + 1) % 1; pressed[i] = Math.max(0, pressed[i] - dt * 4); glows.setColorAt(i, tmpC.setHSL(h, 0.9, 0.5 + pressed[i] * 0.4)); } if (glows.instanceColor) glows.instanceColor.needsUpdate = true;
-    accum += dt; if (accum > 0.12 && Math.random() < 0.7) { accum = 0; pressed[(Math.random() * N) | 0] = 1; sfx.click(mode === 'zoom' ? 0.01 : 0.02); }
+    accum += dt; if (accum > 0.12 && Math.random() < 0.7) { accum = 0; pressed[(Math.random() * N) | 0] = 1; }
     edge.material.color.setHSL(hue, 0.9, 0.55); lPurple.color.setHSL((hue + 0.05) % 1, 0.8, 0.55); underGlow.material.color.setHSL((hue + 0.5) % 1, 0.9, 0.55); mGlow.material.color.setHSL((hue + 0.3) % 1, 1, 0.6); ring.material.color.setHSL((hue + 0.45) % 1, 0.9, 0.6); gpuLed.material.color.setHSL((hue + 0.8) % 1, 1, 0.6);
     strips.forEach((b, i) => b.material.color.setHSL((hue + i * 0.3) % 1, 0.9, 0.55)); miniLED.visible = ((t * 1.2) | 0) % 2 === 0;
     fans.forEach((f, i) => { f.rotation.z -= dt * (7 + i); f.children[0].material.color.setHSL((hue + i * 0.1) % 1, 0.9, 0.6); });
@@ -302,7 +307,7 @@ export function startScene(canvas, hooks) {
     leaves.forEach((l, i) => { l.rotation.x = Math.sin(t * 0.8 + i) * 0.04; });
     const sp = stG.attributes.position; for (let i = 0; i < stN; i++) { stS[i] = (stS[i] + dt * 0.25) % 1; const s = stS[i]; sp.array[i * 3] = Math.sin(s * 9 + i) * 0.012 * s * 4; sp.array[i * 3 + 1] = s * 0.2; sp.array[i * 3 + 2] = Math.cos(s * 7 + i) * 0.012 * s * 4; } sp.needsUpdate = true;
     logT -= dt; if (logT <= 0) { logT = 0.7 + Math.random() * 0.6; logBuf.push(codeLines[(Math.random() * codeLines.length) | 0]); if (logBuf.length > 16) logBuf.shift(); }
-    frames++; if (mode !== 'zoom' && frames % 4 === 0) { drawSide(t); drawScreen(t); }
+    frames++; if (mode !== 'zoom' && frames % 6 === 0) { drawSide(t); drawScreen(t); }
     const p = dg.attributes.position; for (let i = 0; i < dustN; i++) { p.array[i * 3 + 1] += dv[i] * dt * 3; if (p.array[i * 3 + 1] > 3.3) p.array[i * 3 + 1] = 0; } p.needsUpdate = true;
     chair.rotation.y = Math.PI + 0.6 + Math.sin(t * 0.4) * 0.06; sign.material.opacity = 0.9 + Math.sin(t * 5.2) * 0.03 * (Math.random() > 0.97 ? 8 : 1);
     const still = mode === 'zoom' && zt === 1; if (!still || frames % 8 === 0) composer.render(); requestAnimationFrame(frame);
